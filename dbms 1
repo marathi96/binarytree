@@ -1,0 +1,31 @@
+-- DBMS 1
+
+
+-- a) Display all existing databases in MySQL
+SHOW DATABASES;
+
+-- b) Check the installed MySQL version
+SELECT VERSION();
+
+-- c) Create a new database for the IT department
+CREATE DATABASE it_dbms_lab;
+
+-- d) Select the created database for use
+USE it_dbms_lab;
+
+-- e) Create a table named Student
+CREATE TABLE Student (
+    RollNo INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Department VARCHAR(50)
+);
+
+-- f) Insert sample student records into the table
+INSERT INTO Student (RollNo, Name, Department)
+VALUES
+(1, 'Amit Sharma', 'Information Technology'),
+(2, 'Priya Patil', 'Information Technology'),
+(3, 'Rahul Verma', 'Information Technology');
+
+-- g) Display all records stored in the Student table
+SELECT * FROM Student;
