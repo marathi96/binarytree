@@ -1,0 +1,120 @@
+-- DBMS 12
+
+-- Create Database
+CREATE DATABASE ecommerce_db;
+
+-- Use Database
+USE ecommerce_db;
+
+-- Create Customer Table
+CREATE TABLE Customer (
+    CustomerID INT PRIMARY KEY,
+    CustomerName VARCHAR(50),
+    City VARCHAR(50)
+);
+
+-- Create Product Table
+CREATE TABLE Product (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(50),
+    Price DECIMAL(10,2)
+);
+
+-- Create Orders Table
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    ProductID INT,
+    Quantity INT,
+    TotalAmount DECIMAL(10,2),
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
+    FOREIGN KEY (ProductID) REFERENCES Product(ProductID)
+);
+
+-- Insert Sample Data into Customer
+INSERT INTO Customer VALUES
+(1, 'Amit', 'Pune'),
+(2, 'Priya', 'Mumbai'),
+(3, 'Rahul', 'Delhi'),
+(4, 'Sneha', 'Nagpur');
+
+-- Insert Sample Data into Product
+INSERT INTO Product VALUES
+(101, 'Laptop', 55000),
+(102, 'Mobile', 25000),
+(103, 'Headphones', 3000),
+(104, 'Keyboard', 1500);
+
+-- Insert Sample Data into Orders
+INSERT INTO Orders VALUES
+(1001, 1, 101, 1, 55000),
+(1002, 2, 102, 1, 25000),
+(1003, 1, 103, 2, 6000),
+(1004, 3, 104, 3, 4500);
+
+----------------------------------------------------------------
+-- 1. Find customers who have placed orders using IN clause
+SELECT * FROM Customer
+
+WHERE CustomerID IN (
+    SELECT CustomerID FROM Orders
+);
+
+----------------------------------------------------------------
+-- 2. Find customers who have not placed any orders using NOT IN
+SELECT *
+FROM Customer
+WHERE CustomerID NOT IN (
+    SELECT CustomerID FROM Orders
+);
+
+----------------------------------------------------------------
+-- 3. Single-Row Subquery
+-- Find the product with the highest price
+SELECT *
+FROM Product
+WHERE Price = (
+    SELECT MAX(Price) FROM Product
+);
+
+----------------------------------------------------------------
+-- 4. Subquery in SELECT Clause
+-- Display order ID and total amount for each order
+SELECT 
+    OrderID,
+    (SELECT TotalAmount 
+     FROM Orders O2 
+     WHERE O2.OrderID = O1.OrderID) AS Total_Amount
+FROM Orders O1;
+
+----------------------------------------------------------------
+-- 5. Subquery in FROM Clause
+-- Find customers whose total purchase amount is greater than 30000
+SELECT CustomerID, TotalPurchase
+FROM (
+    SELECT CustomerID, SUM(TotalAmount) AS TotalPurchase
+    FROM Orders
+    GROUP BY CustomerID
+) AS PurchaseData
+WHERE TotalPurchase > 30000;
+
+----------------------------------------------------------------
+-- 6. Correlated Subquery
+-- Find products more expensive than average product price
+SELECT *
+FROM Product P1
+WHERE Price > (
+    SELECT AVG(Price)
+    FROM Product P2
+);
+
+----------------------------------------------------------------
+-- 7. Subquery with EXISTS
+-- List customers who have ordered at least one product
+SELECT *
+FROM Customer C
+WHERE EXISTS (
+    SELECT *
+    FROM Orders O
+    WHERE C.CustomerID = O.CustomerID
+);
