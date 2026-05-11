@@ -1,0 +1,95 @@
+-- Create and select database
+CREATE DATABASE IF NOT EXISTS it_dbms_lab;
+USE it_dbms_lab;
+ 
+-- Drop tables (child first)
+DROP TABLE IF EXISTS Orders;
+DROP TABLE IF EXISTS Product;
+DROP TABLE IF EXISTS Customer;
+ 
+-- Create Customer table
+CREATE TABLE Customer (
+    CustID INT         PRIMARY KEY,
+    Name   VARCHAR(50) NOT NULL,
+    City   VARCHAR(30)
+);
+ 
+-- Create Product table
+CREATE TABLE Product (
+    ProdID   INT             PRIMARY KEY,
+    ProdName VARCHAR(50)     NOT NULL,
+    Price    DECIMAL(10, 2)
+);
+ 
+-- Create Orders table
+CREATE TABLE Orders (
+    OrderID  INT             PRIMARY KEY,
+    CustID   INT,
+    ProdID   INT,
+    Quantity INT,
+    TotalAmt DECIMAL(10, 2),
+    FOREIGN KEY (CustID) REFERENCES Customer(CustID),
+    FOREIGN KEY (ProdID) REFERENCES Product(ProdID)
+);
+ 
+-- Insert Customers
+INSERT INTO Customer VALUES (1, 'Rahul Sharma', 'Pune');
+INSERT INTO Customer VALUES (2, 'Priya Patil',  'Mumbai');
+INSERT INTO Customer VALUES (3, 'Amit Desai',   'Pune');
+INSERT INTO Customer VALUES (4, 'Sneha More',   'Nagpur');
+ 
+-- Insert Products
+INSERT INTO Product VALUES (1, 'Laptop', 55000.00);
+INSERT INTO Product VALUES (2, 'Phone',  25000.00);
+INSERT INTO Product VALUES (3, 'Tablet', 18000.00);
+INSERT INTO Product VALUES (4, 'Watch',   8000.00);
+ 
+-- Insert Orders (Sneha has NOT placed any order)
+INSERT INTO Orders VALUES (1, 1, 1, 1, 55000.00);
+INSERT INTO Orders VALUES (2, 2, 2, 2, 50000.00);
+INSERT INTO Orders VALUES (3, 1, 3, 1, 18000.00);
+INSERT INTO Orders VALUES (4, 3, 4, 1,  8000.00);
+ 
+-- View all data
+SELECT * FROM Customer;
+SELECT * FROM Product;
+SELECT * FROM Orders;
+ 
+-- 1. IN: Customers who HAVE placed orders
+SELECT Name FROM Customer
+WHERE  CustID IN (SELECT CustID FROM Orders);
+ 
+-- 2. NOT IN: Customers who have NOT placed any order
+SELECT Name FROM Customer
+WHERE  CustID NOT IN (SELECT CustID FROM Orders);
+ 
+-- 3. Single-row subquery (=): Product with the highest price
+SELECT ProdName, Price FROM Product
+WHERE  Price = (SELECT MAX(Price) FROM Product);
+ 
+-- 4. Subquery in SELECT: Customer name alongside each order
+SELECT OrderID,
+       (SELECT Name FROM Customer
+        WHERE  Customer.CustID = Orders.CustID) AS CustomerName,
+       TotalAmt
+FROM   Orders;
+ 
+-- 5. Subquery in FROM: Customers with total purchase > 30000
+SELECT C.Name, S.TotalPurchase
+FROM   Customer C
+JOIN   (
+    SELECT CustID, SUM(TotalAmt) AS TotalPurchase
+    FROM   Orders
+    GROUP  BY CustID
+) AS S ON C.CustID = S.CustID
+WHERE  S.TotalPurchase > 30000;
+ 
+-- 6. Correlated subquery: Products above average price
+SELECT ProdName, Price FROM Product
+WHERE  Price > (SELECT AVG(Price) FROM Product);
+ 
+-- 7. EXISTS: Customers who have ordered at least one product
+SELECT Name FROM Customer C
+WHERE  EXISTS (
+    SELECT 1 FROM Orders O WHERE O.CustID = C.CustID
+);
