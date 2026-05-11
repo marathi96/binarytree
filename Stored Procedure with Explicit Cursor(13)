@@ -1,0 +1,72 @@
+-- Create and select database
+CREATE DATABASE IF NOT EXISTS it_dbms_lab;
+USE it_dbms_lab;
+ 
+-- Drop and create Employee table
+DROP TABLE IF EXISTS Employee;
+CREATE TABLE Employee (
+    EmpID      INT             PRIMARY KEY,
+    Name       VARCHAR(50)     NOT NULL,
+    Department VARCHAR(30)     NOT NULL,
+    Salary     DECIMAL(10, 2)
+);
+ 
+-- Insert employee records
+INSERT INTO Employee VALUES (1, 'Rahul Sharma', 'IT',      55000.00);
+INSERT INTO Employee VALUES (2, 'Priya Patil',  'HR',      48000.00);
+INSERT INTO Employee VALUES (3, 'Amit Desai',   'IT',      62000.00);
+INSERT INTO Employee VALUES (4, 'Sneha More',   'Finance', 51000.00);
+INSERT INTO Employee VALUES (5, 'Ravi Kumar',   'HR',      45000.00);
+SELECT * FROM Employee;
+ 
+-- Drop procedure if already exists
+DROP PROCEDURE IF EXISTS ShowAllEmployees;
+ 
+-- Change delimiter so MySQL does not stop at internal semicolons
+DELIMITER $$
+ 
+CREATE PROCEDURE ShowAllEmployees()
+BEGIN
+ 
+    -- Declare variables to hold each row
+    DECLARE v_empid  INT;
+    DECLARE v_name   VARCHAR(50);
+    DECLARE v_dept   VARCHAR(30);
+    DECLARE v_salary DECIMAL(10, 2);
+    DECLARE done     INT DEFAULT 0;
+ 
+    -- Declare explicit cursor
+    DECLARE emp_cursor CURSOR FOR
+        SELECT EmpID, Name, Department, Salary
+        FROM   Employee;
+ 
+    -- Handler: when no more rows found, set done = 1
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+ 
+    -- Open the cursor
+    OPEN emp_cursor;
+ 
+    -- Loop through each row one by one
+    read_loop: LOOP
+        FETCH emp_cursor INTO v_empid, v_name, v_dept, v_salary;
+ 
+        IF done = 1 THEN
+            LEAVE read_loop;
+        END IF;
+ 
+        SELECT v_empid  AS EmpID,
+               v_name   AS Name,
+               v_dept   AS Department,
+               v_salary AS Salary;
+    END LOOP;
+ 
+    -- Close the cursor
+    CLOSE emp_cursor;
+ 
+END$$
+ 
+-- Restore default delimiter
+DELIMITER ;
+ 
+-- Execute the procedure
+CALL ShowAllEmployees();
