@@ -1,0 +1,31 @@
+-- Show all existing databases
+SHOW DATABASES;
+ 
+-- Check MySQL version
+SELECT VERSION();
+ 
+-- Create database (safe: does nothing if it already exists)
+CREATE DATABASE IF NOT EXISTS it_dbms_lab;
+ 
+-- Select the database to use
+USE it_dbms_lab;
+ 
+-- Drop table if it already exists (clean start)
+DROP TABLE IF EXISTS Student;
+ 
+-- Create Student table
+CREATE TABLE Student (
+    RollNo     INT          PRIMARY KEY,
+    Name       VARCHAR(50)  NOT NULL,
+    Department VARCHAR(30)  NOT NULL
+);
+ 
+-- Insert records
+INSERT INTO Student VALUES (1, 'Rahul Sharma', 'IT');
+INSERT INTO Student VALUES (2, 'Priya Patil',  'CS');
+INSERT INTO Student VALUES (3, 'Amit Desai',   'ENTC');
+INSERT INTO Student VALUES (4, 'Sneha More',   'IT');
+INSERT INTO Student VALUES (5, 'Ravi Kumar',   'CS');
+ 
+-- Display all records
+SELECT * FROM Student;
