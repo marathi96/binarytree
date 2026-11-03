@@ -1,0 +1,169 @@
+##############################################################
+PRACTICAL 6 : INTER-PROCESS COMMUNICATION USING FIFO (NAMED PIPES)
+##############################################################
+
+FILE NAMES
+----------
+process1.c
+process2.c
+
+INSTRUCTIONS
+------------
+Step 1: Create the first process file
+    nano process1.c
+  Paste the first code and save (Ctrl + O -> Enter -> Ctrl + X).
+
+Step 2: Create the second process file
+    nano process2.c
+  Paste the second code and save.
+
+Step 3: Compile both programs
+    gcc process1.c -o process1
+    gcc process2.c -o process2
+
+Step 4: Run the programs
+  Open two Ubuntu terminals.
+
+  Terminal 1:
+    ./process1
+
+  Terminal 2:
+    ./process2
+
+Step 5: Enter sentences in Terminal 1.
+  Press Ctrl + D when finished to send the input for processing.
+  The character, word and line counts will be shown in Terminal 1.
+
+CODE
+----
+
+FILE 1: process1.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+#define PIPE1 "/tmp/pipe1"
+#define PIPE2 "/tmp/pipe2"
+
+int main()
+{
+    int fd1, fd2;
+    char buffer[1024];
+
+    mkfifo(PIPE1, 0666);
+    mkfifo(PIPE2, 0666);
+
+    printf("Enter sentences (Press Ctrl+D to finish):\n");
+
+    fd1 = open(PIPE1, O_WRONLY);
+
+    while (fgets(buffer, sizeof(buffer), stdin) != NULL)
+    {
+        write(fd1, buffer, strlen(buffer));
+    }
+
+    close(fd1);
+
+    fd2 = open(PIPE2, O_RDONLY);
+
+    printf("\nResult received from Process 2:\n");
+
+    while (1)
+    {
+        int n = read(fd2, buffer, sizeof(buffer) - 1);
+        if (n <= 0)
+            break;
+
+        buffer[n] = '\0';
+        printf("%s", buffer);
+    }
+
+    close(fd2);
+
+    unlink(PIPE1);
+    unlink(PIPE2);
+
+    return 0;
+}
+
+FILE 2: process2.c
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <ctype.h>
+
+#define PIPE1 "/tmp/pipe1"
+#define PIPE2 "/tmp/pipe2"
+
+int main()
+{
+    int fd1, fd2;
+    char buffer[1024];
+    int characters = 0, words = 0, lines = 0;
+    int in_word = 0;
+    int n;
+
+    fd1 = open(PIPE1, O_RDONLY);
+
+    while ((n = read(fd1, buffer, sizeof(buffer))) > 0)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            characters++;
+
+            if (buffer[i] == '\n')
+                lines++;
+
+            if (isspace((unsigned char)buffer[i]))
+            {
+                in_word = 0;
+            }
+            else if (in_word == 0)
+            {
+                words++;
+                in_word = 1;
+            }
+        }
+    }
+
+    close(fd1);
+
+    FILE *fp = fopen("result.txt", "w");
+    if (fp == NULL)
+    {
+        perror("File error");
+        return 1;
+    }
+
+    fprintf(fp, "Number of Characters: %d\n", characters);
+    fprintf(fp, "Number of Words: %d\n", words);
+    fprintf(fp, "Number of Lines: %d\n", lines);
+
+    fclose(fp);
+
+    fp = fopen("result.txt", "r");
+    if (fp == NULL)
+    {
+        perror("File error");
+        return 1;
+    }
+
+    fd2 = open(PIPE2, O_WRONLY);
+
+    while ((n = fread(buffer, 1, sizeof(buffer), fp)) > 0)
+    {
+        write(fd2, buffer, n);
+    }
+
+    close(fd2);
+    fclose(fp);
+
+    return 0;
+}
