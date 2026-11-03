@@ -1,0 +1,113 @@
+##############################################################
+PRACTICAL 1 : ADDRESS BOOK (SHELL SCRIPT)
+##############################################################
+
+FILE NAME
+---------
+address_book.sh
+
+INSTRUCTIONS
+------------
+Step 1: Create the file
+    nano address_book.sh
+
+Step 2: Paste the code and save it.
+    Save: Ctrl + O -> Enter -> Ctrl + X
+
+Step 3: Give execution permission
+    chmod +x address_book.sh
+
+Step 4: Run the program
+    ./address_book.sh
+
+CODE
+----
+#!/bin/bash
+
+FILE="addressbook.txt"
+
+while true
+do
+    echo ""
+    echo "========== ADDRESS BOOK =========="
+    echo "1. Create Address Book"
+    echo "2. View Address Book"
+    echo "3. Insert a Record"
+    echo "4. Delete a Record"
+    echo "5. Modify a Record"
+    echo "6. Exit"
+    echo "=================================="
+    read -p "Enter your choice: " choice
+
+    case $choice in
+
+        1)
+            > "$FILE"
+            echo "Address book created successfully."
+            ;;
+
+        2)
+            if [ -f "$FILE" ]; then
+                echo "----- Address Book Records -----"
+                cat "$FILE"
+            else
+                echo "Address book does not exist."
+            fi
+            ;;
+
+        3)
+            if [ ! -f "$FILE" ]; then
+                touch "$FILE"
+            fi
+            read -p "Enter Name: " name
+            read -p "Enter Phone Number: " phone
+            read -p "Enter Address: " address
+            echo "$name | $phone | $address" >> "$FILE"
+            echo "Record inserted successfully."
+            ;;
+
+        4)
+            if [ ! -f "$FILE" ]; then
+                echo "Address book does not exist."
+                continue
+            fi
+            read -p "Enter the name to delete: " name
+            if grep -Fq "$name |" "$FILE"; then
+                grep -Fv "$name |" "$FILE" > temp.txt
+                mv temp.txt "$FILE"
+                echo "Record deleted successfully."
+            else
+                echo "Record not found."
+            fi
+            ;;
+
+        5)
+            if [ ! -f "$FILE" ]; then
+                echo "Address book does not exist."
+                continue
+            fi
+            read -p "Enter the name to modify: " name
+            if grep -Fq "$name |" "$FILE"; then
+                grep -Fv "$name |" "$FILE" > temp.txt
+                read -p "Enter New Name: " newname
+                read -p "Enter New Phone Number: " newphone
+                read -p "Enter New Address: " newaddress
+                echo "$newname | $newphone | $newaddress" >> temp.txt
+                mv temp.txt "$FILE"
+                echo "Record modified successfully."
+            else
+                echo "Record not found."
+            fi
+            ;;
+
+        6)
+            echo "Exiting Address Book."
+            exit 0
+            ;;
+
+        *)
+            echo "Invalid choice. Please try again."
+            ;;
+
+    esac
+done
